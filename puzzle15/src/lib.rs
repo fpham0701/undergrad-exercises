@@ -4,27 +4,48 @@ mod circuits;
 /// Should be fairly compact and easy to copy.
 #[derive(Debug, Clone)]
 pub struct GameState {
+    grid: [[Option<u8>; 4]; 4], // option so there can be nothing
     // TODO
 }
 
 /// Creates the default position of tiles, starting with 1 in the top left corner.
 impl Default for GameState {
     fn default() -> Self {
-        todo!()
+        let mut grid = [[None; 4]; 4]; 
+        let mut value = 1;
+
+        for i in 0..4 {
+            for j in 0..4 {
+                if value <= 15 {
+                    grid[i][j] = Some(value);
+                    value += 1; // Update value
+                }
+            }
+        }
+        GameState { grid }
     }
 }
 
 /// Generates a human-readable representation of the game state.
 impl std::fmt::Display for GameState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        for i in 0..4 {
+            print!("|  ");
+            for j in 0..4 {
+                match self.grid[i][j] {
+                    Some(val) => print!("{} ", val),
+                    None => print!("  "),
+                }
+            }
+        }
+        Ok(())
     }
 }
 
 /// Checks whether two game states are the same,.
 impl PartialEq for GameState {
     fn eq(&self, other: &Self) -> bool {
-        todo!()
+        self.grid == other.grid
     }
 }
 
@@ -34,22 +55,36 @@ impl Eq for GameState {}
 impl GameState {
     /// Updates a position with a new tile.
     pub fn set(&mut self, x: u8, y: u8, tile: Option<u8>) {
-        todo!()
+        self.grid[x][y] = tile
     }
 
     /// Returns the tile at position x,y.
     pub fn get(&self, x: u8, y: u8) -> Option<u8> {
-        todo!()
+        self.grid[x][y] 
     }
 
     /// Returns false if there is a duplicate tile in this game state.
     pub fn all_tiles_unique(&self) -> bool {
-        todo!()
+        let mut tiles = Vec::new();
+        
+        for i in 0.len(self.grid) {
+            for j in 0.len(self.grid[i]) {
+                if tiles.contains(&self.grid[i][j]) {
+                    false
+                } 
+                else {
+                    tiles.push(self.grid[i][j]);
+                }
+            }
+        }
+        true
     }
 
     /// Swaps the tile from (x1,y1) with the tile from (x2,y2)
     pub fn swap(&mut self, x1: u8, y1: u8, x2: u8, y2: u8) {
-        todo!()
+        let temp = self.grid[x1][y1];
+        self.set(x1, y1, self.grid[x2][y2]);
+        self.set(x2, y2, temp);
     }
 
     /// Updates the state to reflect the move that was performed. Returns false if the move was
