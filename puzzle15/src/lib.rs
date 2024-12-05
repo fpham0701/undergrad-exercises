@@ -30,13 +30,14 @@ impl Default for GameState {
 impl std::fmt::Display for GameState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for i in 0..4 {
-            print!("|  ");
+            write!(f, "|")?;
             for j in 0..4 {
                 match self.grid[i][j] {
-                    Some(val) => print!("{} ", val),
-                    None => print!("  "),
+                    Some(val) => write!(f, " {:2} |", val)?,
+                    None => write!(f, "    |")?,
                 }
             }
+            writeln!(f)?;
         }
         Ok(())
     }
@@ -55,25 +56,24 @@ impl Eq for GameState {}
 impl GameState {
     /// Updates a position with a new tile.
     pub fn set(&mut self, x: u8, y: u8, tile: Option<u8>) {
-        self.grid[x][y] = tile
+        self.grid[x as usize][y as usize] = tile
     }
 
     /// Returns the tile at position x,y.
     pub fn get(&self, x: u8, y: u8) -> Option<u8> {
-        self.grid[x][y] 
+        self.grid[x as usize][y as usize] 
     }
 
     /// Returns false if there is a duplicate tile in this game state.
     pub fn all_tiles_unique(&self) -> bool {
-        let mut tiles = Vec::new();
-        
-        for i in 0.len(self.grid) {
-            for j in 0.len(self.grid[i]) {
-                if tiles.contains(&self.grid[i][j]) {
-                    false
-                } 
-                else {
-                    tiles.push(self.grid[i][j]);
+        let mut tiles = std::collections::HashSet::new();
+
+        for x in self.grid.iter() {
+            for y in x.iter() {
+                if let Some(t) = y {
+                    if !tiles.insert(t) {
+                        return false;
+                    }
                 }
             }
         }
@@ -82,20 +82,69 @@ impl GameState {
 
     /// Swaps the tile from (x1,y1) with the tile from (x2,y2)
     pub fn swap(&mut self, x1: u8, y1: u8, x2: u8, y2: u8) {
-        let temp = self.grid[x1][y1];
-        self.set(x1, y1, self.grid[x2][y2]);
+        let temp = self.grid[x1 as usize][y1 as usize];
+        self.set(x1, y1, self.grid[x2 as usize][y2 as usize]);
         self.set(x2, y2, temp);
     }
 
     /// Updates the state to reflect the move that was performed. Returns false if the move was
     /// not possible.
     pub fn perform_move(&mut self, m: Move) -> bool {
-        todo!()
+        let mut move_change = false;
+        match m {
+            Move::LeftToRight => {
+                for x in 0..4 {
+                    for y in 0..4 {
+                        if x != 0 && self.get(x, y) == None {
+                            self.set(x, y, self.get(x-1, y));
+                            move_change = true;
+                        }
+                    }
+                }
+            }
+            Move::RightToLeft => {
+                for x in 0..4 {
+                    for y in 0..4 {
+                        if x != 3 && self.get(x, y) == None {
+                            self.set(x, y, self.get(x+1, y));
+                            move_change = true;
+                        }
+                    }
+                }
+            }
+            Move::TopToBottom => {
+                for x in 0..4 {
+                    for y in 0..4 {
+                        if y != 0 && self.get(x, y) == None {
+                            self.set(x, y, self.get(x, y-1));
+                            move_change = true;
+                        }
+                    }
+                }
+            }
+            Move::BottomToTop => {
+                for x in 0..4 {
+                    for y in 0..4 {
+                        if y != 3 && self.get(x, y) == None {
+                            self.set(x, y, self.get(x, y+1));
+                            move_change = true;
+                        }
+                    }
+                }
+            }
+        }
+        move_change
     }
 
     /// Performs a series of moves. Returns the number of moves that were successful.
     pub fn perform_moves(&mut self, moves: &[Move]) -> usize {
-        todo!()
+        let mut smoves = 0;
+        for &m in moves {
+            if self.perform_move(m) {
+                smoves += 1;
+            }
+        }
+        smoves
     }
 
     /// Tries to parse a game state from the provided string.
@@ -103,6 +152,10 @@ impl GameState {
     /// duplicate or invalid tiles.
     /// Ignores whitespace.
     pub fn from_str(s: &str) -> Option<Self> {
+        // let mut grid = [[None; 4]; 4];
+        // let mut tiles = std::collections::HashSet;
+        // let rows = s.split("|").collect();
+
         todo!()
     }
 }
